@@ -1,10 +1,9 @@
 import base64
 import os
-from datetime import datetime
 import streamlit as st
 import streamlit.components.v1 as components
 
-# --- FONCTION SECURISEE POUR CHARGER LA PHOTO ---
+# --- FONCTION SÉCURISÉE POUR CHARGER LA PHOTO ---
 def charger_image_locale(nom_fichier):
     dossier_actuel = os.path.dirname(__file__)
     chemin_complet = os.path.join(dossier_actuel, nom_fichier)
@@ -21,7 +20,7 @@ nom_fichier_photo = "ma_photo.jpg"
 try:
     img_b64 = charger_image_locale(nom_fichier_photo)
     url_image_fond = f"data:image/jpeg;base64,{img_b64}"
-except Exception as e:
+except Exception:
     url_image_fond = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80"
 
 st.markdown(
@@ -41,19 +40,6 @@ st.markdown(
         color: #FFFFFF !important;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
     }}
-
-    /* Encadrement du bloc metric (Heures / Minutes / Secondes) - ROUGE */
-    div[data-testid="stMetric"] {{
-        background-color: #dc2626 !important;
-        padding: 15px 20px !important;
-        border-radius: 12px !important;
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.3) !important;
-    }}
-    
-    /* Textes dans le bloc metric en blanc */
-    div[data-testid="stMetric"] * {{
-        color: #FFFFFF !important;
-    }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -63,18 +49,24 @@ st.markdown(
 st.title("Alea iacta est")
 st.subheader("Le compte à rebours est lancé !")
 
-# --- MINUTEUR 1 : HTML/JS (JOURS, HEURES, MINUTES, SECONDES) ---
+# --- COMPOSANT HTML/JS AVEC LES 2 MINUTEURS EN DIRECT ---
 code_html_js = """
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-<div style="text-align: center; margin-bottom: 15px;" id="zone-bouton-musique">
+<!-- Bouton Musique -->
+<div style="text-align: center; margin-bottom: 20px;" id="zone-bouton-musique">
     <button id="bouton-musique" style="padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 8px; border: none; background-color: #dc2626; color: white; box-shadow: 1px 1px 5px rgba(0,0,0,0.3); font-weight: bold;">
         🎵 Activer la musique d'attente
     </button>
 </div>
 
-<!-- Boîte du minuteur sur fond ROUGE avec texte BLANC -->
-<div id="minuteur" style="text-align: center; font-size: 50px; font-weight: bold; color: #ffffff !important; background-color: #dc2626 !important; padding: 30px; border-radius: 15px; font-family: sans-serif; box-shadow: 0px 4px 15px rgba(0,0,0,0.4);">
+<!-- MINUTEUR 1 : Jours, Heures, Minutes, Secondes -->
+<div id="minuteur1" style="text-align: center; font-size: 45px; font-weight: bold; color: #ffffff !important; background-color: #dc2626 !important; padding: 25px; border-radius: 15px; font-family: sans-serif; box-shadow: 0px 4px 15px rgba(0,0,0,0.4); margin-bottom: 20px;">
+    Chargement...
+</div>
+
+<!-- MINUTEUR 2 : Total Heures, Minutes, Secondes -->
+<div id="minuteur2" style="text-align: center; font-size: 26px; font-weight: bold; color: #ffffff !important; background-color: #dc2626 !important; padding: 15px; border-radius: 12px; font-family: sans-serif; box-shadow: 0px 4px 12px rgba(0,0,0,0.3);">
     Chargement...
 </div>
 
@@ -111,7 +103,8 @@ code_html_js = """
 
         if (difference <= 0) {
             clearInterval(intervalle);
-            document.getElementById("minuteur").innerHTML = "⏰ Temps écoulé !";
+            document.getElementById("minuteur1").innerHTML = "⏰ Temps écoulé !";
+            document.getElementById("minuteur2").innerHTML = "🎉 C'est fini !";
             
             if (!confettisLances) {
                 musiqueAttente.pause();
@@ -125,40 +118,24 @@ code_html_js = """
             return;
         }
 
-        // Calcul : Jours, Heures, Minutes, Secondes
+        // --- CALCUL MINUTEUR 1 (Jours, Heures, Minutes, Secondes) ---
         const jours = Math.floor(difference / (1000 * 60 * 60 * 24));
         let heures = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         let minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         let secondes = Math.floor((difference % (1000 * 60)) / 1000);
 
-        heures = heures < 10 ? "0" + heures : heures;
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        secondes = secondes < 10 ? "0" + secondes : secondes;
+        let hStr = heures < 10 ? "0" + heures : heures;
+        let mStr = minutes < 10 ? "0" + minutes : minutes;
+        let sStr = secondes < 10 ? "0" + secondes : secondes;
 
-        document.getElementById("minuteur").innerHTML = jours + " Jours <br>" + heures + " : " + minutes + " : " + secondes;
+        document.getElementById("minuteur1").innerHTML = jours + " Jours <br>" + hStr + " : " + mStr + " : " + sStr;
+
+        // --- CALCUL MINUTEUR 2 (Heures Totales, Minutes, Secondes) ---
+        const heuresTotales = Math.floor(difference / (1000 * 60 * 60));
+        
+        document.getElementById("minuteur2").innerHTML = "⏳ Temps total : " + heuresTotales + "h " + mStr + "m " + sStr + "s";
     }, 1000);
 </script>
 """
 
-components.html(code_html_js, height=380)
-
-# --- MINUTEUR 2 : CALCUL PYTHON (HEURES, MINUTES, SECONDES TOTALES) ---
-maintenant = datetime.now()
-date_cible = datetime(2026, 10, 2, 12, 15)
-
-if maintenant < date_cible:
-    difference = date_cible - maintenant
-    total_secondes = int(difference.total_seconds())
-    
-    heures_totales = total_secondes // 3600
-    minutes = (total_secondes % 3600) // 60
-    secondes = total_secondes % 60
-    
-    st.metric(
-        label="⏳ Temps total restant",
-        value=f"{heures_totales}h {minutes:02d}m {secondes:02d}s",
-        help="Nombre total d'heures, minutes et secondes restantes.",
-    )
-else:
-    st.info("La date cible est atteinte ou dépassée !")
-    st.balloons()
+components.html(code_html_js, height=480)
