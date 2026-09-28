@@ -47,7 +47,7 @@ st.markdown(
 
 # --- TEXTES DE LA PAGE ---
 st.title("Alea iacta est")
-st.subheader("Le compte à rebours est lancé !")
+st.subheader("5 jours ... putain c'est long")
 
 # --- COMPOSANT HTML/JS AVEC LES 2 MINUTEURS EN DIRECT ---
 code_html_js = """
