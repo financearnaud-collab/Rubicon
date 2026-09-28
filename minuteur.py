@@ -3,8 +3,8 @@ import os
 import streamlit as st
 import streamlit.components.v1 as components
 
-# --- FONCTION SÉCURISÉE POUR CHARGER LA PHOTO ---
-def charger_image_locale(nom_fichier):
+# --- FONCTIONS SÉCURISÉES POUR CHARGER LES FICHIERS LOCAUX ---
+def charger_fichier_local(nom_fichier):
     dossier_actuel = os.path.dirname(__file__)
     chemin_complet = os.path.join(dossier_actuel, nom_fichier)
     
@@ -14,15 +14,25 @@ def charger_image_locale(nom_fichier):
 
 st.set_page_config(page_title="Mon Minuteur", page_icon="⏳")
 
-# --- IMAGE DE FOND PERSONNELLE ET STYLE ---
+# --- CHARGEMENT DE L'IMAGE ---
 nom_fichier_photo = "ma_photo.jpg"
-
 try:
-    img_b64 = charger_image_locale(nom_fichier_photo)
+    img_b64 = charger_fichier_local(nom_fichier_photo)
     url_image_fond = f"data:image/jpeg;base64,{img_b64}"
 except Exception:
     url_image_fond = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80"
 
+# --- CHARGEMENT DE LA MUSIQUE ---
+nom_fichier_musique = "musique_douce.mp3"
+try:
+    audio_b64 = charger_fichier_local(nom_fichier_musique)
+    url_musique = f"data:audio/mp3;base64,{audio_b64}"
+except Exception:
+    # Musique très douce par défaut (Clair de Lune - Debussy) au format MP3 (très compatible)
+    url_musique = "https://www.mfiles.co.uk/mp3-downloads/debussy-clair-de-lune.mp3"
+
+
+# --- STYLE CSS ---
 st.markdown(
     f"""
     <style>
@@ -47,7 +57,6 @@ st.markdown(
 
 # --- TEXTES DE LA PAGE ---
 st.title("Alea iacta est")
-# La phrase "5 jours..." a été déplacée dans le composant HTML ci-dessous.
 
 # --- COMPOSANT HTML/JS AVEC LES 2 MINUTEURS EN DIRECT ---
 code_html_js = """
@@ -79,10 +88,11 @@ code_html_js = """
     const dateCible = new Date("2026-10-02T12:15:00").getTime();
     let confettisLances = false;
 
-    // Musique calme (Erik Satie)
-    const musiqueAttente = new Audio("https://upload.wikimedia.org/wikipedia/commons/4/4e/Erik_Satie_-_Gymnop%C3%A9die_No._1.ogg");
+    // Musique douce injectée dynamiquement
+    const musiqueAttente = new Audio("URL_MUSIQUE_ICI");
     musiqueAttente.loop = true; 
     
+    // Musique de victoire MP3 (plus fiable)
     const musiqueVictoire = new Audio("https://actions.google.com/sounds/v1/crowds/crowd_cheering.ogg");
 
     let musiqueEnCours = false;
@@ -123,7 +133,7 @@ code_html_js = """
             return;
         }
 
-        // --- CALCUL MINUTEUR 1 (Jours, Heures, Minutes, Secondes) ---
+        // --- CALCUL MINUTEUR 1 ---
         const jours = Math.floor(difference / (1000 * 60 * 60 * 24));
         let heures = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         let minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
@@ -135,12 +145,15 @@ code_html_js = """
 
         document.getElementById("minuteur1").innerHTML = jours + " Jours <br>" + hStr + " : " + mStr + " : " + sStr;
 
-        // --- CALCUL MINUTEUR 2 (Heures Totales, Minutes, Secondes) ---
+        // --- CALCUL MINUTEUR 2 ---
         const heuresTotales = Math.floor(difference / (1000 * 60 * 60));
         
         document.getElementById("minuteur2").innerHTML = "⏳ Temps total : " + heuresTotales + "h " + mStr + "m " + sStr + "s";
     }, 1000);
 </script>
 """
+
+# Injection du lien audio propre dans le code HTML/JS
+code_html_js = code_html_js.replace("URL_MUSIQUE_ICI", url_musique)
 
 components.html(code_html_js, height=520)
