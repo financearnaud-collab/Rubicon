@@ -47,7 +47,7 @@ st.markdown(
 
 # --- TEXTES DE LA PAGE ---
 st.title("Alea iacta est")
-st.subheader("5 jours ... putain c'est long")
+# La phrase "5 jours..." a été déplacée dans le composant HTML ci-dessous.
 
 # --- COMPOSANT HTML/JS AVEC LES 2 MINUTEURS EN DIRECT ---
 code_html_js = """
@@ -63,6 +63,11 @@ code_html_js = """
 <!-- MINUTEUR 1 : Jours, Heures, Minutes, Secondes -->
 <div id="minuteur1" style="text-align: center; font-size: 45px; font-weight: bold; color: #ffffff !important; background-color: #dc2626 !important; padding: 25px; border-radius: 15px; font-family: sans-serif; box-shadow: 0px 4px 15px rgba(0,0,0,0.4); margin-bottom: 20px;">
     Chargement...
+</div>
+
+<!-- TEXTE INTERMÉDIAIRE -->
+<div style="text-align: center; font-size: 28px; font-weight: bold; color: #ffffff; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); font-family: sans-serif; margin-bottom: 20px;">
+    5 jours ... putain c'est long
 </div>
 
 <!-- MINUTEUR 2 : Total Heures, Minutes, Secondes -->
@@ -138,4 +143,4 @@ code_html_js = """
 </script>
 """
 
-components.html(code_html_js, height=480)
+components.html(code_html_js, height=520)
