@@ -6,7 +6,6 @@ import streamlit.components.v1 as components
 
 # --- FONCTION SECURISEE POUR CHARGER LA PHOTO ---
 def charger_image_locale(nom_fichier):
-    # Obtient le chemin absolu du dossier où se trouve le script
     dossier_actuel = os.path.dirname(__file__)
     chemin_complet = os.path.join(dossier_actuel, nom_fichier)
     
@@ -17,14 +16,12 @@ def charger_image_locale(nom_fichier):
 st.set_page_config(page_title="Mon Minuteur", page_icon="⏳")
 
 # --- IMAGE DE FOND PERSONNELLE ET STYLE ---
-# Attention : Assure-toi que le nom sur GitHub est STRICTEMENT IDENTIQUE (ex: .jpg vs .JPG)
 nom_fichier_photo = "ma_photo.jpg"
 
 try:
     img_b64 = charger_image_locale(nom_fichier_photo)
     url_image_fond = f"data:image/jpeg;base64,{img_b64}"
 except Exception as e:
-    # Image de secours si la photo n'est pas trouvée
     url_image_fond = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80"
 
 st.markdown(
@@ -45,15 +42,15 @@ st.markdown(
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
     }}
 
-    /* Encadrement du bloc metric (Heures) - ROUGE FORCÉ */
+    /* Encadrement du bloc metric (Heures / Minutes / Secondes) - ROUGE */
     div[data-testid="stMetric"] {{
-        background-color: #dc2626 !important; /* Rouge intense */
+        background-color: #dc2626 !important;
         padding: 15px 20px !important;
         border-radius: 12px !important;
         box-shadow: 0px 4px 12px rgba(0,0,0,0.3) !important;
     }}
     
-    /* Tous les textes dans le bloc metric en blanc */
+    /* Textes dans le bloc metric en blanc */
     div[data-testid="stMetric"] * {{
         color: #FFFFFF !important;
     }}
@@ -66,7 +63,7 @@ st.markdown(
 st.title("Alea iacta est")
 st.subheader("Le compte à rebours est lancé !")
 
-# --- MINUTEUR HTML/JS ---
+# --- MINUTEUR 1 : HTML/JS (JOURS, HEURES, MINUTES, SECONDES) ---
 code_html_js = """
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -128,32 +125,39 @@ code_html_js = """
             return;
         }
 
-        const heuresTotales = Math.floor(difference / (1000 * 60 * 60));
+        // Calcul : Jours, Heures, Minutes, Secondes
+        const jours = Math.floor(difference / (1000 * 60 * 60 * 24));
+        let heures = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         let minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         let secondes = Math.floor((difference % (1000 * 60)) / 1000);
 
+        heures = heures < 10 ? "0" + heures : heures;
         minutes = minutes < 10 ? "0" + minutes : minutes;
         secondes = secondes < 10 ? "0" + secondes : secondes;
 
-        document.getElementById("minuteur").innerHTML = heuresTotales + " Heures <br>" + minutes + " : " + secondes;
+        document.getElementById("minuteur").innerHTML = jours + " Jours <br>" + heures + " : " + minutes + " : " + secondes;
     }, 1000);
 </script>
 """
 
 components.html(code_html_js, height=380)
 
-# --- CALCUL DES HEURES TOTALES RESTANTES (PYTHON) ---
+# --- MINUTEUR 2 : CALCUL PYTHON (HEURES, MINUTES, SECONDES TOTALES) ---
 maintenant = datetime.now()
 date_cible = datetime(2026, 10, 2, 12, 15)
 
 if maintenant < date_cible:
     difference = date_cible - maintenant
-    heures_restantes = int(difference.total_seconds() // 3600)
+    total_secondes = int(difference.total_seconds())
+    
+    heures_totales = total_secondes // 3600
+    minutes = (total_secondes % 3600) // 60
+    secondes = total_secondes % 60
     
     st.metric(
-        label="⏳ Heures totales restantes",
-        value=f"{heures_restantes} heures",
-        help="Nombre d'heures complètes avant l'échéance.",
+        label="⏳ Temps total restant",
+        value=f"{heures_totales}h {minutes:02d}m {secondes:02d}s",
+        help="Nombre total d'heures, minutes et secondes restantes.",
     )
 else:
     st.info("La date cible est atteinte ou dépassée !")
